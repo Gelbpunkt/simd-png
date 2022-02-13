@@ -1,7 +1,3 @@
-#![feature(const_generics)]
-#![feature(const_evaluatable_checked)]
-#![allow(incomplete_features)]
-
 use std::{
     collections::HashMap,
     fmt::{self, Write},
@@ -13,8 +9,8 @@ use std::{
 use std::arch::x86_64::*;
 
 #[derive(Debug)]
-struct PngReader {
-    buffer: memmap::Mmap,
+pub struct PngReader {
+    buffer: Vec<u8>,
     cursor: usize,
 }
 
@@ -261,14 +257,14 @@ impl PngDecoder {
 }
 
 #[derive(Debug)]
-struct Bitmap {
-    width: u32,
-    height: u32,
-    buffer: Vec<u8>,
+pub struct Bitmap {
+    pub width: u32,
+    pub height: u32,
+    pub buffer: Vec<u8>,
 }
 
 impl PngReader {
-    pub fn new(buffer: memmap::Mmap) -> Self {
+    pub fn new(buffer: Vec<u8>) -> Self {
         Self { buffer, cursor: 0 }
     }
 
@@ -401,40 +397,6 @@ impl PngReader {
             self.cursor += 1;
             b
         })
-    }
-}
-
-fn main() {
-    let file = std::fs::File::open("Periodic_table_large.png").unwrap();
-    let mmap = unsafe { memmap::MmapOptions::new().map(&file) }.unwrap();
-    let decoder = PngReader::new(mmap);
-
-    let bitmap = decoder.parse();
-
-    let mut window = minifb::Window::new(
-        "Image",
-        bitmap.width as usize,
-        bitmap.height as usize,
-        minifb::WindowOptions::default(),
-    )
-    .unwrap();
-
-    window.limit_update_rate(Some(std::time::Duration::from_millis(1000)));
-
-    window
-        .update_with_buffer(
-            &bitmap
-                .buffer
-                .chunks_exact(4)
-                .map(|b| u32::from_le_bytes([b[2], b[1], b[0], 0]))
-                .collect::<Vec<u32>>(),
-            bitmap.width as usize,
-            bitmap.height as usize,
-        )
-        .unwrap();
-
-    while window.is_open() {
-        window.update();
     }
 }
 
