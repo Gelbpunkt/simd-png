@@ -246,8 +246,6 @@ impl PngDecoder {
             }
         }
 
-        dbg!(counts);
-
         Bitmap {
             width: self.header_chunk.width,
             height: self.header_chunk.height,
